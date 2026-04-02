@@ -1,0 +1,157 @@
+{{define "content"}}
+<div class="space-y-6">
+    <h1 class="text-2xl font-bold text-gray-900">API Keys</h1>
+
+    <!-- New key alert -->
+    {{if .NewKey}}
+    <div class="rounded-md bg-green-50 p-4 ring-1 ring-green-200">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <div class="ml-3 flex-1">
+                <h3 class="text-sm font-medium text-green-800">API Key Created</h3>
+                <p class="mt-1 text-sm text-green-700">Copy your key now. You won't be able to see it again.</p>
+                <div class="mt-3 flex items-center gap-3">
+                    <code class="rounded bg-green-100 px-3 py-1.5 font-mono text-sm text-green-900">{{.NewKey}}</code>
+                    <button onclick="copyToClipboard('{{.NewKey}}', this)"
+                            class="rounded-md bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-500">
+                        Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{end}}
+
+    <!-- Existing keys -->
+    <div class="rounded-lg bg-white shadow-sm ring-1 ring-gray-900/5">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">Your API Keys</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Agent</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Key</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Loops</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Permissions</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Last Used</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white">
+                    {{range .Keys}}
+                    <tr>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{.Name}}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            {{if .AgentName}}<span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">{{deref .AgentName}}</span>{{else}}--{{end}}
+                        </td>
+                        <td class="px-6 py-4 text-sm font-mono text-gray-500">{{.KeyPrefix}}...</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            {{if .AllowedLoops}}<span class="text-xs text-gray-600">{{len .AllowedLoops}} loop(s)</span>{{else}}<span class="text-xs text-gray-400">All loops</span>{{end}}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            <div class="flex flex-wrap gap-1">
+                                {{range .Permissions}}
+                                <span class="inline-flex items-center rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">{{.}}</span>
+                                {{end}}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {{if .IsActive}}
+                            <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Active</span>
+                            {{else}}
+                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Revoked</span>
+                            {{end}}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">{{formatTime .CreatedAt}}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">{{if .LastUsedAt}}{{formatTime .LastUsedAt}}{{else}}Never{{end}}</td>
+                        <td class="px-6 py-4 text-right text-sm">
+                            {{if .IsActive}}
+                            <form method="POST" action="/api-keys/{{.ID}}/revoke">
+                                <button type="submit"
+                                        hx-confirm="Are you sure you want to revoke this API key? This cannot be undone."
+                                        class="text-red-600 hover:text-red-800 text-xs font-medium">Revoke</button>
+                            </form>
+                            {{end}}
+                        </td>
+                    </tr>
+                    {{else}}
+                    <tr>
+                        <td colspan="9" class="px-6 py-8 text-center text-sm text-gray-500">No API keys yet.</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Create API key form -->
+    <div class="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-900/5">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Create API Key</h2>
+        <form method="POST" action="/api-keys" class="space-y-4">
+            <div>
+                <label for="key-name" class="block text-sm font-medium text-gray-700">Name</label>
+                <input type="text" name="name" id="key-name" required
+                       class="mt-1 block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                       placeholder="e.g. Production API Key">
+            </div>
+
+            <div>
+                <label for="agent-name" class="block text-sm font-medium text-gray-700">Agent Name <span class="text-gray-400 font-normal">(optional)</span></label>
+                <input type="text" name="agent_name" id="agent-name"
+                       class="mt-1 block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                       placeholder="e.g. Claude, Deploy Bot">
+                <p class="mt-1 text-xs text-gray-500">Identifies the agent on requests created with this key.</p>
+            </div>
+
+            {{if .Loops}}
+            <fieldset>
+                <legend class="text-sm font-medium text-gray-700">Loop Access <span class="text-gray-400 font-normal">(leave unchecked for all loops)</span></legend>
+                <div class="mt-2 grid grid-cols-2 gap-2 max-w-md">
+                    {{range .Loops}}
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="allowed_loops" value="{{.ID}}" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-sm text-gray-700">{{.Name}}</span>
+                    </label>
+                    {{end}}
+                </div>
+            </fieldset>
+            {{end}}
+
+            <fieldset>
+                <legend class="text-sm font-medium text-gray-700">Permissions</legend>
+                <div class="mt-2 grid grid-cols-2 gap-2 max-w-md">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="permissions" value="loops:read" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-sm text-gray-700">loops:read</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="permissions" value="loops:write" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-sm text-gray-700">loops:write</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="permissions" value="requests:read" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-sm text-gray-700">requests:read</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" name="permissions" value="requests:write" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-sm text-gray-700">requests:write</span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <div class="pt-2">
+                <button type="submit" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Create API Key</button>
+            </div>
+        </form>
+    </div>
+</div>
+{{end}}

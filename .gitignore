@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+*.swp
+
+# Xcode
+ios/**/xcuserdata/
+ios/**/*.xcuserstate
+ios/**/xcschememanagement.plist
+ios/build/
+ios/DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# Go
+server/handoff
+server/handoff.db
+server/handoff.db-shm
+server/handoff.db-wal
+server/test-handoff.db
+server/.env
+server/keys/
+
+# IDE
+.vscode/
+.idea/

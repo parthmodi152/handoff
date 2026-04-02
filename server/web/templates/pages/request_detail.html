@@ -1,0 +1,134 @@
+{{define "content"}}
+<div class="space-y-6">
+    <div class="flex items-center gap-3">
+        <a href="/requests" class="text-gray-400 hover:text-gray-600">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+        </a>
+        <h1 class="text-2xl font-bold text-gray-900">Request Detail</h1>
+    </div>
+
+    <!-- Request info -->
+    <div class="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-900/5 space-y-4">
+        <div>
+            <h2 class="text-sm font-medium text-gray-500">Request Text</h2>
+            <p class="mt-1 text-gray-900">{{.Request.RequestText}}</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Status</h3>
+                <div id="request-status" class="mt-1"
+                     {{if eq .Request.Status "pending"}}hx-get="/requests/{{.Request.ID}}" hx-trigger="every 10s" hx-target="#request-status" hx-select="#request-status"{{end}}>
+                    {{if eq .Request.Status "pending"}}
+                    <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">Pending</span>
+                    {{else if eq .Request.Status "completed"}}
+                    <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Completed</span>
+                    {{else if eq .Request.Status "cancelled"}}
+                    <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Cancelled</span>
+                    {{else if eq .Request.Status "timeout"}}
+                    <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">Timeout</span>
+                    {{end}}
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Priority</h3>
+                <div class="mt-1">
+                    {{if eq .Request.Priority "critical"}}
+                    <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">Critical</span>
+                    {{else if eq .Request.Priority "high"}}
+                    <span class="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">High</span>
+                    {{else if eq .Request.Priority "medium"}}
+                    <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">Medium</span>
+                    {{else if eq .Request.Priority "low"}}
+                    <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">Low</span>
+                    {{end}}
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Response Type</h3>
+                <p class="mt-1 text-sm text-gray-900">{{.Request.ResponseType}}</p>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Loop</h3>
+                <p class="mt-1 text-sm text-gray-900">{{.Request.LoopName}}</p>
+            </div>
+
+            {{if .Request.AgentName}}
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Agent</h3>
+                <div class="mt-1">
+                    <span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">{{deref .Request.AgentName}}</span>
+                </div>
+            </div>
+            {{end}}
+        </div>
+
+        <div>
+            <h3 class="text-sm font-medium text-gray-500">Created</h3>
+            <p class="mt-1 text-sm text-gray-900">{{formatTime .Request.CreatedAt}}</p>
+        </div>
+
+        {{if .Request.ResponseConfig}}
+        <div>
+            <h3 class="text-sm font-medium text-gray-500">Response Configuration</h3>
+            <pre class="mt-1 rounded-md bg-gray-50 p-3 text-sm text-gray-700 overflow-x-auto">{{printf "%s" .Request.ResponseConfig}}</pre>
+        </div>
+        {{end}}
+    </div>
+
+    <!-- Response section -->
+    {{if eq .Request.Status "completed"}}
+    <div class="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-900/5 space-y-4">
+        <h2 class="text-lg font-semibold text-gray-900">Response</h2>
+
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {{with .Request.ResponseBy}}
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Responder</h3>
+                <p class="mt-1 text-sm text-gray-900">{{.}}</p>
+            </div>
+            {{end}}
+            {{with .Request.ResponseAt}}
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Responded At</h3>
+                <p class="mt-1 text-sm text-gray-900">{{formatTime .}}</p>
+            </div>
+            {{end}}
+            {{if .Request.ResponseTimeSeconds}}
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Response Time</h3>
+                <p class="mt-1 text-sm text-gray-900">{{printf "%.1f" (derefFloat .Request.ResponseTimeSeconds)}}s</p>
+            </div>
+            {{end}}
+        </div>
+
+        {{if .Request.ResponseData}}
+        <div>
+            <h3 class="text-sm font-medium text-gray-500">Response Data</h3>
+            <pre class="mt-1 rounded-md bg-gray-50 p-3 text-sm text-gray-700 overflow-x-auto">{{printf "%s" .Request.ResponseData}}</pre>
+        </div>
+        {{end}}
+    </div>
+    {{end}}
+
+    {{if eq .Request.Status "pending"}}
+    <div class="rounded-md bg-yellow-50 p-4 ring-1 ring-yellow-200">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-800">Waiting for response. This page auto-refreshes every 10 seconds.</p>
+            </div>
+        </div>
+    </div>
+    {{end}}
+</div>
+{{end}}

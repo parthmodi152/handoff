@@ -1,0 +1,7 @@
+handoff
+*.db
+*.db-wal
+*.db-shm
+.env
+keys/
+*.p8

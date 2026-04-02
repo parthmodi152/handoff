@@ -1,0 +1,45 @@
+{{define "content"}}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900">Loops</h1>
+        <a href="/loops/new" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Create Loop</a>
+    </div>
+
+    {{if .Loops}}
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {{range .Loops}}
+        <a href="/loops/{{.ID}}" class="block rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-900/5 hover:shadow-md transition-shadow">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">{{renderIcon .Icon ""}}</span>
+                <div class="min-w-0 flex-1">
+                    <h3 class="text-base font-semibold text-gray-900 truncate">{{.Name}}</h3>
+                    {{if .Description}}
+                    <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{.Description}}</p>
+                    {{end}}
+                </div>
+            </div>
+            <div class="mt-4 flex items-center justify-between">
+                <span class="text-sm text-gray-500">{{.MemberCount}} member{{if ne .MemberCount 1}}s{{end}}</span>
+                {{if eq .Role "owner"}}
+                <span class="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">Owner</span>
+                {{else if eq .Role "admin"}}
+                <span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">Admin</span>
+                {{else}}
+                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Member</span>
+                {{end}}
+            </div>
+        </a>
+        {{end}}
+    </div>
+    {{else}}
+    <div class="rounded-lg bg-white p-12 text-center shadow-sm ring-1 ring-gray-900/5">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        <h3 class="mt-4 text-sm font-semibold text-gray-900">No loops yet</h3>
+        <p class="mt-1 text-sm text-gray-500">Get started by creating your first loop.</p>
+        <a href="/loops/new" class="mt-4 inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Create Loop</a>
+    </div>
+    {{end}}
+</div>
+{{end}}

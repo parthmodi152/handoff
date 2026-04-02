@@ -1,0 +1,134 @@
+{{define "content"}}
+<div class="space-y-6">
+    <h1 class="text-2xl font-bold text-gray-900">Requests</h1>
+
+    <!-- Filter bar -->
+    <div class="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-900/5">
+        <form class="flex flex-wrap items-end gap-4"
+              hx-get="/requests"
+              hx-target="#requests-table"
+              hx-push-url="true"
+              hx-trigger="change">
+            <div>
+                <label for="filter-status" class="block text-xs font-medium text-gray-500">Status</label>
+                <select name="status" id="filter-status"
+                        class="mt-1 block rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {{if eq .Status "pending"}}selected{{end}}>Pending</option>
+                    <option value="completed" {{if eq .Status "completed"}}selected{{end}}>Completed</option>
+                    <option value="cancelled" {{if eq .Status "cancelled"}}selected{{end}}>Cancelled</option>
+                    <option value="timeout" {{if eq .Status "timeout"}}selected{{end}}>Timeout</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="filter-priority" class="block text-xs font-medium text-gray-500">Priority</label>
+                <select name="priority" id="filter-priority"
+                        class="mt-1 block rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">All Priorities</option>
+                    <option value="low" {{if eq .Priority "low"}}selected{{end}}>Low</option>
+                    <option value="medium" {{if eq .Priority "medium"}}selected{{end}}>Medium</option>
+                    <option value="high" {{if eq .Priority "high"}}selected{{end}}>High</option>
+                    <option value="critical" {{if eq .Priority "critical"}}selected{{end}}>Critical</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="filter-loop" class="block text-xs font-medium text-gray-500">Loop</label>
+                <select name="loop_id" id="filter-loop"
+                        class="mt-1 block rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">All Loops</option>
+                    {{range .Loops}}
+                    <option value="{{.ID}}" {{if eq $.LoopID .ID}}selected{{end}}>{{.Name}}</option>
+                    {{end}}
+                </select>
+            </div>
+        </form>
+    </div>
+
+    <!-- Requests table -->
+    <div id="requests-table">
+        <div class="rounded-lg bg-white shadow-sm ring-1 ring-gray-900/5">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Request</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Agent</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Loop</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Priority</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Response Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Created</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white">
+                        {{range .Requests}}
+                        <tr class="hover:bg-gray-50 cursor-pointer" onclick="window.location='/requests/{{.ID}}'">
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                {{truncate .RequestText 60}}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                {{if .AgentName}}<span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">{{deref .AgentName}}</span>{{else}}--{{end}}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">{{.LoopName}}</td>
+                            <td class="px-6 py-4">
+                                {{if eq .Status "pending"}}
+                                <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">Pending</span>
+                                {{else if eq .Status "completed"}}
+                                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">Completed</span>
+                                {{else if eq .Status "cancelled"}}
+                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">Cancelled</span>
+                                {{else if eq .Status "timeout"}}
+                                <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">Timeout</span>
+                                {{end}}
+                            </td>
+                            <td class="px-6 py-4">
+                                {{if eq .Priority "critical"}}
+                                <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">Critical</span>
+                                {{else if eq .Priority "high"}}
+                                <span class="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">High</span>
+                                {{else if eq .Priority "medium"}}
+                                <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">Medium</span>
+                                {{else if eq .Priority "low"}}
+                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">Low</span>
+                                {{end}}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">{{.ResponseType}}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">{{formatTime .CreatedAt}}</td>
+                        </tr>
+                        {{else}}
+                        <tr>
+                            <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">No requests found.</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {{if gt .TotalPages 1}}
+        <div class="mt-4 flex items-center justify-between">
+            <p class="text-sm text-gray-700">
+                Page <span class="font-medium">{{.Page}}</span> of <span class="font-medium">{{.TotalPages}}</span>
+            </p>
+            <div class="flex gap-2">
+                {{if gt .Page 1}}
+                <a href="?page={{sub .Page 1}}{{if .Status}}&status={{.Status}}{{end}}{{if .Priority}}&priority={{.Priority}}{{end}}{{if .LoopID}}&loop_id={{.LoopID}}{{end}}"
+                   class="rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                    Previous
+                </a>
+                {{end}}
+                {{if lt .Page .TotalPages}}
+                <a href="?page={{add .Page 1}}{{if .Status}}&status={{.Status}}{{end}}{{if .Priority}}&priority={{.Priority}}{{end}}{{if .LoopID}}&loop_id={{.LoopID}}{{end}}"
+                   class="rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                    Next
+                </a>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}
